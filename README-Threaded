@@ -1,0 +1,26 @@
+Readme for threaded version.
+==============================
+
+Created by: Bruno Costa 
+ITQB 2016
+
+What this is:
+This is a wrapper for Cleaveland 4
+
+The main objective of this process is to spead up the process of target prediction with cleaveland.
+
+The implementation is perfectly scalable as long as you have the necessary RAM to allocated the transcriptome "N" times into memory.
+
+The paralazation is done by. Splitting the sRNA fasta file into smaller portions. Say 10 sequences per thread. Cleaveland is run "N" times in separate subdirectories.
+Once a process is finished the wrapper grabs the next 10 sequences in the original sRNA fasta file.
+
+The number of sequences to be processed by each thread is customizable.
+
+Once the whole fasta file has been parsed the program builds a unique output 
+
+Dependencies
+============
+
+Must have the extract_x_seqs.sh in your path. It comes with this release (See Fasta_extractor)
+Set up the location of Cleaveland4.pl (should be solved soon to relegate to path as well)
+So far all I can remember.

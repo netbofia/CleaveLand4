@@ -1,0 +1,1 @@
+/home/brunocosta/.Software/Fasta_extractor/extract_x_seqs.sh
