@@ -24,3 +24,11 @@ Dependencies
 Must have the extract_x_seqs.sh in your path. It comes with this release (See Fasta_extractor)
 Set up the location of Cleaveland4.pl (should be solved soon to relegate to path as well)
 So far all I can remember.
+All the others for Cleaveland4. Cleaveland4 must be able to run on it's one for this to run.
+
+Valid modes:
+
+Only mode 1 and mode 2 are setup so far.
+Mode 1 run a few sRNA sequences inorder to buid a denisty file (Sorry was to lazy to check how the density file is produced.) Afterwards passed the degradome density file to run in mode 2 in a parralel way.
+
+Comments or suggestions open issue on github or send and email to brunovasquescosta@gmail.com
