@@ -96,7 +96,7 @@ case $key in
   ------------------------------------------
   ${blue}Cleaveland4 threaded verion${NC}
   ------------------------------------------
-  Mandatory parameters - 3 of the following:
+  Mandatory parameters - 4 of the following:
   -d or -e both are not allowed
   ------------------------------------------
 
@@ -104,7 +104,7 @@ case $key in
   ${blue}-d|--degDensity    ${NC}| Degradome density file
   ${blue}-e|--degradome     ${NC}| Degradome file (fasta)
   ${blue}-n|--transcriptome ${NC}| Transcriptome file (fasta) Will be stored in memory (RAM) N times
-
+  ${blue}-s|--threads       ${NC}| Number of parallel processes to run
   ---------------------
    Optional args
   ---------------------
@@ -144,6 +144,9 @@ fi
 if [[ -z "$category" ]]; then
   category=4
 fi 
+if [[ -z "$THREADS" ]]; then
+  THREADS=1
+fi
 
 
 #Planed support only for modes 1 and 2 
@@ -237,7 +240,6 @@ while [[ "$current_seq_num" -lt "$NUM_SEQ" ]]; do
   while [[ $CURRENT_TH_COUNT -ge  $THREADS ]]; do
   	sleep 2
         children=`ps -eo ppid | grep -w $bash_pid`
-  	#echo $children
   	CURRENT_TH_COUNT=$( echo $children | wc -w ) 
   done
 

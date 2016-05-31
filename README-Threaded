@@ -7,7 +7,7 @@ ITQB 2016
 What this is:
 This is a wrapper for Cleaveland 4
 
-The main objective of this process is to spead up the process of target prediction with cleaveland.
+The main objective of this process is to speed up the process of target prediction with cleaveland.
 
 The implementation is perfectly scalable as long as you have the necessary RAM to allocated the transcriptome "N" times into memory.
 
@@ -31,12 +31,12 @@ Valid modes:
 Only mode 1 and mode 2 are setup so far.
 Mode 1 run a few sRNA sequences inorder to buid a denisty file (Sorry was to lazy to check how the density file is produced.) Afterwards passed the degradome density file to run in mode 2 in a parralel way.
 
--p Pvalue hasn't been implemented yet
--r hasn't been implemented yet (Just set it to default all the time 0.65)
+-p Pvalue Default 1
+-r MFEratio default 0.65
 -g gstar might not be implemented because it is for mode 3/4
 -q quiet mode will be implemented shortly
--c category simple and fast along with pvalue 
--a in though. I'll think about it.
+-c Category default 4
+-a in thought. I'll think about it.
 
 
 Comments or suggestions open issue on github or send and email to: brunovasquescosta@gmail.com
