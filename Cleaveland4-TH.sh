@@ -93,7 +93,12 @@ case $key in
   ;;
   -h|--help)
   echo -e "  
-  ${blue}${NC}
+  ------------------------------------------
+  ${blue}Cleaveland4 threaded verion${NC}
+  ------------------------------------------
+  Mandatory parameters - 3 of the following:
+  -d or -e both are not allowed
+  ------------------------------------------
 
   ${blue}-u|--sRNA          ${NC}| sRNA sequence file (fasta) No spaces or strange chars in seq names
   ${blue}-d|--degDensity    ${NC}| Degradome density file
