@@ -36,7 +36,7 @@ do
 
 case $key in
   -v|--version)
-  version=true
+  version="true"
   shift # past argument
   ;;
   -q|--quiet)
@@ -56,7 +56,7 @@ case $key in
   shift #past argument
   ;;
   -o|--tplots)
-  tplots="$2"
+  TPLOTS="$2"
   shift # past argument
   ;;
   -d|--degDensity)
@@ -80,11 +80,11 @@ case $key in
   shift # past argument
   ;;
   -p|--pval)
-  tplots="$2"
+  pval="$2"
   shift # past argument
   ;;
   -c|--category)
-  tplots="$2"
+  category="$2"
   shift # past argument
   ;;
   -s|--threads)
@@ -92,22 +92,29 @@ case $key in
   shift # past argument
   ;;
   -h|--help)
-  echo -e " 
-  ${blue}-f|--lib-first
-  -l|--lib-last
-  -h|--help${NC}
+  echo -e "  
+  ${blue}${NC}
+
+  ${blue}-u|--sRNA          ${NC}| sRNA sequence file (fasta) No spaces or strange chars in seq names
+  ${blue}-d|--degDensity    ${NC}| Degradome density file
+  ${blue}-e|--degradome     ${NC}| Degradome file (fasta)
+  ${blue}-n|--transcriptome ${NC}| Transcriptome file (fasta) Will be stored in memory (RAM) N times
+
   ---------------------
-  Optional args
+   Optional args
   ---------------------
-  ${blue}-s|--step${NC} Step is an optional argument used to jump steps to start the analysis from a different point  
-      ${green}Step 1${NC}: Wbench Filter
-      ${green}Step 2${NC}: Filter Genome & mirbase
-      ${green}Step 3${NC}: Tasi
-      ${green}Step 4${NC}: Mircat
-      ${green}Step 5${NC}: PAREsnip    
- ${blue}--lc${NC} Set the program to begin in lcmode instead of fs mode. The preceading substring from the lib num (Pattern) Template + Lib num, but identify only one file in the inserts_dir    
- ${blue}--fasta${NC} Set the program to start using fasta files. As an argument supply the file name that identifies the series to be used. Ex: Lib_1.fa, Lib_2.fa, .. --> argument should be Lib_
- ${blue}--fastq${NC} Set the program to start using fastq files. As an argument supply the file name that identifies the series to be used. Ex: Lib_1.fq, Lib_2.fq, .. --> argument should be Lib_ , if no .fq file is present but instead a .fastq.gz file will additionally be extracted automatically.  
+  ${green}-h|--help          ${NC}| This message.
+  ${green}-v|--version       ${NC}| Display version of Cleaveland (Not working)
+  ${green}-q|--quiet         ${NC}| Quiet mode straight to log (Not implemented yet) 
+  ${green}-a|--allenSort     ${NC}| Sort by allen score instead of by MFEratio
+  ${green}-t|--tabular       ${NC}| Tabular output allways on (Might be removed)
+  ${green}-r|--mfer          ${NC}| Minium free energy ratio cutoff. Default: 0.65 [0-1]
+  ${green}-o|--tplots        ${NC}| Directory where tplots are saved
+  ${green}-g|--gstar         ${NC}| Gstar file (Not implemented)
+  ${green}-p|--pval          ${NC}| P-value cutoff. Default: 1 [0-1] 		
+  ${green}-c|--category      ${NC}| Category cutoff Default:4 [0-4]
+  
+  For more information go to: https://github.com/MikeAxtell/CleaveLand4
   "
   exit 0
 esac
@@ -119,15 +126,26 @@ if [[ -n "$degradome" && -n "$degDensity" ]]; then
   echo -e "${red}Error${NC} - you can't specifiy a degradome file and a degradome density. Please submit only one."
   exit 126
 fi
-if [[ "$version" ]]; then
+if [[ "$version" == "true" ]]; then
   $cleaveland -v
   exit 0       
 fi
+if [[ -z "$pval" ]]; then
+  pval=1
+fi
+if [[ -z "$mfer" ]]; then
+  mfer=0.65
+fi
+if [[ -z "$category" ]]; then
+  category=4
+fi 
+
 
 #Planed support only for modes 1 and 2 
 #Modes 3 and 4 use the existing GSTAr file (Not sure it is a use case for this abroad shouldn't need paralization)
-#Support for the -p,-r,-v,-q,-a,-t,-o,-g and -c options will become a reality at least most but might take some time.
-#Some are simple others involve some hacking around with conditions.
+#Support for the -p,-r,-c implemented. -v,-q,-a,-t,-g options may become a reality at least most of them but might take some time.
+#Tabular format is actually the norm not sure if worth changing this 
+#Some are simple others involve some hacking around with conditions. -g might not be an option
 
 
 #Check it is higher than the numer of threads on the machine
@@ -149,7 +167,9 @@ current_seq_num=1
 
 #This should go to the temp folder of the sRNA generated
 output_part="Cleaveland4-partial-result.tsv"
-TPLOTS="tplots"
+if [[ -z "$TPLOTS" ]]; then
+  TPLOTS="Tplots"
+fi
 preLabel="tempCleave4_"
 
 base_sRNA=$(basename $sRNA_COMPLETE)
@@ -179,7 +199,7 @@ if [[ -z $degDensity ]]; then
     cd ${root_dir}
 
     #Run cleaveland in mode 1    
-    $cleaveland -e $degradome -u $fasta_part -n $TRANSCRIPT -t -o $TPLOTS > $output_part
+    $cleaveland -e $degradome -u $fasta_part -n $TRANSCRIPT -r $mfer -p $pval -c $category -t -o $TPLOTS > $output_part
 
     #Advance the current seq num
     current_seq_num=$(( $current_seq_num + $SEQperTHREAD ))	
@@ -223,7 +243,7 @@ while [[ "$current_seq_num" -lt "$NUM_SEQ" ]]; do
     cd ${root_dir}
     #Run cleaveland in mode 2
     
-    $cleaveland -d $degDensity -u $fasta_part -n $TRANSCRIPT -t -o $TPLOTS > $output_part &
+    $cleaveland -d $degDensity -u $fasta_part -n $TRANSCRIPT -r $mfer -p $pval -c $category -t -o $TPLOTS > $output_part &
     #Advance the current seq num
     current_seq_num=$(( $current_seq_num + $SEQperTHREAD ))	
   else
@@ -239,28 +259,22 @@ wait
 #Unification of all bits and pieces
 cd $DIR && 
 mkdir -p Tplots &&
-cp "."${preLabel}*/${TPLOTS}/* Tplots
+cp "."${preLabel}*/${TPLOTS}/* ${TPLOTS}
 cat "."${preLabel}*/$output_part > $OUTPUT_final
 #get metadate for this
 tempResult=tempFileCleave12345678987654321.tmp
 head -8 $OUTPUT_final > $tempResult
 #Remove metadate headers
 sed -i '/^\#/d' $OUTPUT_final
-echo "PASS1"
 header=$(grep -m1 "^SiteID" $OUTPUT_final )
-echo "PASS2"
 sed -i '/^SiteID\tQuery/d' $OUTPUT_final
-echo "PASS3"
 sed -i "1i${header}" $OUTPUT_final
-echo "PASS4"
 cat $OUTPUT_final >> $tempResult
 mv $tempResult $OUTPUT_final
-echo "PASS5"
 #Once again to ensure i'm in the right directory
 cd $DIR &&
 #clean up 
 rm -r "."${preLabel}*
-echo "PASS6"
 END=$(date +%s.%N)
 DIFF=$( echo "${END} - ${START}" | bc )
 
