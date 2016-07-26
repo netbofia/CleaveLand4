@@ -169,7 +169,7 @@ START=$(date +%s.%N)
 
 #CONFIGURATIONS
 #Sequences to be processed by each thread
-SEQperTHREAD=2
+SEQperTHREAD=10
 #The starting sequence number
 current_seq_num=1
 
@@ -265,10 +265,9 @@ wait
 
 #Unification of all bits and pieces
 cd $DIR && 
-mkdir -p Tplots &&
-cp "."${preLabel}*/${TPLOTS}/* ${TPLOTS}
+mkdir -p ${TPLOTS} &&
 cat "."${preLabel}*/$output_part > $OUTPUT_final
-#get metadate for this
+#get metadata for this
 tempResult=tempFileCleave12345678987654321.tmp
 head -8 $OUTPUT_final > $tempResult
 #Remove metadate headers
@@ -278,10 +277,13 @@ sed -i '/^SiteID\tQuery/d' $OUTPUT_final
 sed -i "1i${header}" $OUTPUT_final
 cat $OUTPUT_final >> $tempResult
 mv $tempResult $OUTPUT_final
+cp "."${preLabel}*/${TPLOTS}/* ${TPLOTS}
 #Once again to ensure i'm in the right directory
 cd $DIR &&
 #clean up 
 rm -r "."${preLabel}*
+#Add fragment counts
+python2 fragment-abundance.py --input $OUTPUT_final --output ${OUTPUT_final/.tsv/-frag.tsv}  --density $degDensity
 END=$(date +%s.%N)
 DIFF=$( echo "${END} - ${START}" | bc )
 
