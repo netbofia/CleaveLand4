@@ -18,7 +18,6 @@
 set -e
 
 #Path to cleaveland (Hardcoded Sorry will be changed to be incorporated to path instead)
-cleaveland=~/.Software/CleaveLand4-4.3/CleaveLand4.pl
 
 # OUTPUT-COLORING
 red='\e[0;31m'
@@ -116,9 +115,10 @@ case $key in
   ${green}-r|--mfer          ${NC}| Minium free energy ratio cutoff. Default: 0.65 [0-1]
   ${green}-o|--tplots        ${NC}| Directory where tplots are saved
   ${green}-g|--gstar         ${NC}| Gstar file (Not implemented)
-  ${green}-p|--pval          ${NC}| P-value cutoff. Default: 1 [0-1] 		
+  ${green}-p|--pval          ${NC}| P-value cutoff. Default: 1 [0-1]    
   ${green}-c|--category      ${NC}| Category cutoff Default:4 [0-4]
-  
+
+  Output is placed in the directory you run the command to start the script.   
   For more information go to: https://github.com/MikeAxtell/CleaveLand4
   "
   exit 0
@@ -156,11 +156,18 @@ fi
 #Some are simple others involve some hacking around with conditions. -g might not be an option
 
 
-#Check it is higher than the numer of threads on the machine
+#Check if it is higher than the number of threads on the machine
 
 #####################################################################################
-#Get dir
+#Get SCRIPT_DIR
+SCRIPT_DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+
+#Get working dir
 DIR=$(pwd)
+
+#Change this if you want another version of CleaveLand
+cleaveland=$SCRIPT_DIR/CleaveLand4.pl
+
 #Start time for benchmarking
 START=$(date +%s.%N)
 
@@ -201,7 +208,7 @@ if [[ -z $degDensity ]]; then
     #make temp directory for file enter and run  
     cd $DIR
     mkdir -p  ${root_dir}
-    extract_x_seqs.sh $sRNA_COMPLETE $current_seq_num $SEQperTHREAD > "${root_dir}/${root_name}.fasta" 
+    $SCRIPT_DIR/fasta_extractor/extract_x_seqs.sh $sRNA_COMPLETE $current_seq_num $SEQperTHREAD > "${root_dir}/${root_name}.fasta" 
     fasta_part="${root_name}.fasta"
     echo "Spawning new process"
     cd ${root_dir}
@@ -225,7 +232,7 @@ while [[ "$current_seq_num" -lt "$NUM_SEQ" ]]; do
   #make temp directory for file enter and run  
   cd $DIR
   mkdir -p  ${root_dir}
-  extract_x_seqs.sh $sRNA_COMPLETE $current_seq_num $SEQperTHREAD > "${root_dir}/${root_name}.fasta" 
+  $SCRIPT_DIR/fasta_extractor/extract_x_seqs.sh $sRNA_COMPLETE $current_seq_num $SEQperTHREAD > "${root_dir}/${root_name}.fasta" 
   fasta_part="${root_name}.fasta"
 
   #Get script pid and count subprocess beining run
@@ -283,7 +290,7 @@ cd $DIR &&
 #clean up 
 rm -r "."${preLabel}*
 #Add fragment counts
-python2 fragment-abundance.py --input $OUTPUT_final --output ${OUTPUT_final/.tsv/-frag.tsv}  --density $degDensity
+$SCRIPT_DIR/fragment-abundance.py --targets $OUTPUT_final --output ${OUTPUT_final/.tsv/-frag.tsv}  --density $degDensity
 END=$(date +%s.%N)
 DIFF=$( echo "${END} - ${START}" | bc )
 
